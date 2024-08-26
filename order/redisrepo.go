@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"github.com/BeratHundurel/order-api/model"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,7 +16,7 @@ func orderIDKey(orderID uint64) string {
 	return fmt.Sprintf("order:%d", orderID)
 }
 
-func (r *RedisRepo) Insert(ctx context.Context, order model.Order) error {
+func (r *RedisRepo) Insert(ctx context.Context, order Order) error {
 	data, err := json.Marshal(order)
 	if err != nil {
 		return fmt.Errorf("failed to marshal order: %w", err)
@@ -48,19 +46,19 @@ func (r *RedisRepo) Insert(ctx context.Context, order model.Order) error {
 
 var ErrNotExist = errors.New("order does not exist")
 
-func (r *RedisRepo) GetByID(ctx context.Context, id uint64) (model.Order, error) {
+func (r *RedisRepo) GetByID(ctx context.Context, id uint64) (Order, error) {
 	key := orderIDKey(id)
 
 	res, err := r.Client.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
-		return model.Order{}, ErrNotExist
+		return Order{}, ErrNotExist
 	} else if err != nil {
-		return model.Order{}, fmt.Errorf("failed to get order: %w", err)
+		return Order{}, fmt.Errorf("failed to get order: %w", err)
 	}
 
-	var order model.Order
+	var order Order
 	if err := json.Unmarshal([]byte(res), &order); err != nil {
-		return model.Order{}, fmt.Errorf("failed to unmarshal order: %w", err)
+		return Order{}, fmt.Errorf("failed to unmarshal order: %w", err)
 	}
 	return order, nil
 }
@@ -91,7 +89,7 @@ func (r *RedisRepo) DeleteByID(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (r *RedisRepo) Update(ctx context.Context, order model.Order) error {
+func (r *RedisRepo) Update(ctx context.Context, order Order) error {
 	res, err := json.Marshal(order)
 	if err != nil {
 		return fmt.Errorf("failed to marshal order: %w", err)
@@ -114,7 +112,7 @@ type FindAllPage struct {
 }
 
 type FindResult struct {
-	Orders []model.Order
+	Orders []Order
 	Cursor uint64
 }
 
@@ -135,10 +133,10 @@ func (r *RedisRepo) FindAll(ctx context.Context, page FindAllPage) (FindResult, 
 		return FindResult{}, fmt.Errorf("failed to get orders: %w", err)
 	}
 
-	orders := make([]model.Order, len(xs))
+	orders := make([]Order, len(xs))
 	for i, x := range xs {
 		x := x.(string)
-		var order model.Order
+		var order Order
 		err := json.Unmarshal([]byte(x), &order)
 		if err != nil {
 			return FindResult{}, fmt.Errorf("failed to unmarshal order: %w", err)

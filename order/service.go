@@ -1,14 +1,12 @@
-package services
+package order
 
 import (
+	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
-
-	"github.com/BeratHundurel/order-api/model"
-	"github.com/go-chi/chi"
 )
 
-func CalculateTotal(o *model.Order) float64 {
+func CalculateTotal(o *Order) float64 {
 	var total float64
 	for _, item := range o.LineItems {
 		total += float64(item.Quantity) * item.Price

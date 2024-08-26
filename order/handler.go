@@ -1,11 +1,9 @@
-package handler
+package order
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"github.com/BeratHundurel/order-api/model"
-	"github.com/BeratHundurel/order-api/repository/order"
-	"github.com/BeratHundurel/order-api/services"
 	"github.com/google/uuid"
 	"math/rand"
 	"net/http"
@@ -13,14 +11,22 @@ import (
 	"time"
 )
 
-type Order struct {
-	Repo *order.RedisRepo
+type Repo interface {
+	Insert(ctx context.Context, order Order) error
+	FindAll(ctx context.Context, page FindAllPage) (FindResult, error)
+	GetByID(ctx context.Context, id uint64) (Order, error)
+	Update(ctx context.Context, order Order) error
+	DeleteByID(ctx context.Context, id uint64) error
 }
 
-func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
+type OrderHandler struct {
+	Repo Repo
+}
+
+func (o *OrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		CustomerID uuid.UUID        `json:"customer_id"`
-		LineItems  []model.LineItem `json:"line_items"`
+		CustomerID uuid.UUID  `json:"customer_id"`
+		LineItems  []LineItem `json:"line_items"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -29,13 +35,13 @@ func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	now := time.Now().UTC()
 
-	order := model.Order{
+	order := Order{
 		ID:         rand.Uint64(),
 		CustomerID: body.CustomerID,
 		LineItems:  body.LineItems,
 		CreatedAt:  &now,
 	}
-	order.Total = services.CalculateTotal(&order)
+	order.Total = CalculateTotal(&order)
 
 	err := o.Repo.Insert(r.Context(), order)
 	if err != nil {
@@ -51,7 +57,7 @@ func (o *Order) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (o *Order) List(w http.ResponseWriter, r *http.Request) {
+func (o *OrderHandler) List(w http.ResponseWriter, r *http.Request) {
 	cursorStr := r.URL.Query().Get("cursor")
 	if cursorStr == "" {
 		cursorStr = "0"
@@ -65,7 +71,7 @@ func (o *Order) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	const size = 50
-	res, err := o.Repo.FindAll(r.Context(), order.FindAllPage{
+	res, err := o.Repo.FindAll(r.Context(), FindAllPage{
 		Offset: cursor,
 		Size:   size,
 	})
@@ -75,8 +81,8 @@ func (o *Order) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var response struct {
-		Items []model.Order `json:"items"`
-		Next  uint64        `json:"next,omitempty"`
+		Items []Order `json:"items"`
+		Next  uint64  `json:"next,omitempty"`
 	}
 	response.Items = res.Orders
 	response.Next = res.Cursor
@@ -90,14 +96,14 @@ func (o *Order) List(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Order) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, shouldReturn := services.ParseParamToUint(r, w)
+func (o *OrderHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, shouldReturn := ParseParamToUint(r, w)
 	if shouldReturn {
 		return
 	}
 
 	data, err := o.Repo.GetByID(r.Context(), id)
-	if errors.Is(err, order.ErrNotExist) {
+	if errors.Is(err, ErrNotExist) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {
@@ -113,7 +119,7 @@ func (o *Order) GetByID(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (o *Order) UpdateByID(w http.ResponseWriter, r *http.Request) {
+func (o *OrderHandler) UpdateByID(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Status string `json:"status"`
 	}
@@ -123,13 +129,13 @@ func (o *Order) UpdateByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, shouldReturn := services.ParseParamToUint(r, w)
+	id, shouldReturn := ParseParamToUint(r, w)
 	if shouldReturn {
 		return
 	}
 
 	data, err := o.Repo.GetByID(r.Context(), id)
-	if errors.Is(err, order.ErrNotExist) {
+	if errors.Is(err, ErrNotExist) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {
@@ -173,14 +179,14 @@ func (o *Order) UpdateByID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (o *Order) DeleteByID(w http.ResponseWriter, r *http.Request) {
-	id, shouldReturn := services.ParseParamToUint(r, w)
+func (o *OrderHandler) DeleteByID(w http.ResponseWriter, r *http.Request) {
+	id, shouldReturn := ParseParamToUint(r, w)
 	if shouldReturn {
 		return
 	}
 
 	err := o.Repo.DeleteByID(r.Context(), id)
-	if errors.Is(err, order.ErrNotExist) {
+	if errors.Is(err, ErrNotExist) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	} else if err != nil {

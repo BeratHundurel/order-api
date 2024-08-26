@@ -1,9 +1,8 @@
-package model
+package order
 
 import (
-	"time"
-
 	"github.com/google/uuid"
+	"time"
 )
 
 type Order struct {
