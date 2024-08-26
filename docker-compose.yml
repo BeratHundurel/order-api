@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-network
+
+  ordering-service:
+    build:
+      context: .
+      dockerfile: order-api/Dockerfile
+    depends_on:
+      - redis
+    ports:
+      - "8080:8080"
+    networks:
+      - microservices-network
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: authentication-api/Dockerfile
+    ports:
+      - "8081:8081"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge

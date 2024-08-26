@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/BeratHundurel/order-api/order-api/app"
 	"os"
 	"os/signal"
-
-	"github.com/BeratHundurel/order-api/application"
 )
 
 func main() {

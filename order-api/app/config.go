@@ -12,11 +12,11 @@ type Config struct {
 
 func LoadConfig() Config {
 	cfg := Config{
-		RedisAddress: "localhost:6379",
-		ServerPort:   3000,
+		RedisAddress: "redis:6379",
+		ServerPort:   8080,
 	}
 
-	if v := os.Getenv("REDIS_ADDRESS"); v != "" {
+	if v := os.Getenv("REDIS_ADDR"); v != "" {
 		cfg.RedisAddress = v
 	}
 

@@ -3,7 +3,7 @@ package application
 import (
 	"net/http"
 
-	"github.com/BeratHundurel/order-api/order"
+	"github.com/BeratHundurel/order-api/order-api/order"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )

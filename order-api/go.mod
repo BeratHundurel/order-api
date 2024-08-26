@@ -1,4 +1,4 @@
-module github.com/BeratHundurel/order-api
+module github.com/BeratHundurel/order-api/order-api
 
 go 1.22.2
 
