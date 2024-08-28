@@ -39,6 +39,8 @@ func (a *App) Start(ctx context.Context) error {
 
 	fmt.Println("Starting server")
 
+	MigrateDB()
+
 	ch := make(chan error, 1)
 
 	go func() {

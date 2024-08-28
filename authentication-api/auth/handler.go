@@ -59,7 +59,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	err = h.Repo.Insert(r.Context(), user)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Failed to insert user", http.StatusInternalServerError)
 		return
 	}
 	
