@@ -3,6 +3,7 @@ package application
 import (
 	"net/http"
 
+	"github.com/BeratHundurel/order-api/authentication-api/auth"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -16,21 +17,18 @@ func (a *App) loadRoutes() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	// router.Route("/orders", a.loadOrderRoutes)
+	router.Route("/auth", a.loadAuthRoutes)
 
 	a.router = router
 }
 
-// func (a *App) loadOrderRoutes(router chi.Router) {
-// 	orderHandler := &order.OrderHandler{
-// 		Repo: &order.RedisRepo{
-// 			Client: a.rdb,
-// 		},
-// 	}
+func (a *App) loadAuthRoutes(router chi.Router) {
+	authHandler := &auth.Handler{
+		Repo: &auth.TursoRepo{
+			DB: a.db,
+		},
+	}
 
-// 	router.Post("/", orderHandler.Create)
-// 	router.Get("/", orderHandler.List)
-// 	router.Get("/{id}", orderHandler.GetByID)
-// 	router.Put("/{id}", orderHandler.UpdateByID)
-// 	router.Delete("/{id}", orderHandler.DeleteByID)
-// }
+	router.Post("/", authHandler.Register)
+	router.Get("/{id}", authHandler.GetByID)
+}

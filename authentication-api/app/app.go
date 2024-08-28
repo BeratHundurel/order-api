@@ -4,19 +4,30 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type App struct {
 	router http.Handler
 	cfg    Config
+	db     *gorm.DB
 }
 
 func New(config Config) *App {
+	if err := InitializeDB(); err != nil {
+		fmt.Println("Failed to initialize the database:", err)
+		os.Exit(1)
+	}
+
 	app := &App{
 		cfg: config,
+		db:  GetDB(),
 	}
 	app.loadRoutes()
+
 	return app
 }
 
