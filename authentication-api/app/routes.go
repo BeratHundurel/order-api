@@ -29,6 +29,12 @@ func (a *App) loadAuthRoutes(router chi.Router) {
 		},
 	}
 
-	router.Post("/", authHandler.Register)
+	router.Post("/register", authHandler.Register)
+	router.Post("/login", authHandler.Login)
+	router.Post("/refresh", authHandler.RefreshToken)
+	router.Post("/change-password", authHandler.ChangePassword)
+	router.Post("/change-username", authHandler.ChangeUsername)
+	router.Get("/validate", authHandler.ValidateToken)
+	router.Get("/{username}", authHandler.GetByUsername)
 	router.Get("/{id}", authHandler.GetByID)
 }

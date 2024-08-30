@@ -35,3 +35,11 @@ func (r *TursoRepo) FindByUsername(ctx context.Context, username string) (User, 
 	}
 	return user, nil
 }
+
+func (r *TursoRepo) Update(ctx context.Context, user User) error {
+	result := r.DB.WithContext(ctx).Save(&user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
