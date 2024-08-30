@@ -18,8 +18,8 @@ services:
     networks:
       - microservices-network
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      REDIS_ADDR: "redis:6379"
+      AUTH_SERVICE_URL: "http://auth-service:8081/auth/validate"
 
   auth-service:
     build:
@@ -29,6 +29,10 @@ services:
       - "8081:8081"
     networks:
       - microservices-network
+    environment:
+      TURSO_AUTH_TOKEN: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MjQ3MDI1MDAsInAiOnsicnciOnsibnMiOlsiODY0MDVjZGEtMzI5MC00ZjE0LWFiYjMtNmM2ZDY3NDUwM2FhIl19fX0.j81LLtHbrMZw9BTTTGjxLAFSUeflvE6-REtHjKyEhVZnBAApIBzlm0pqDcttlsLAQvgWNyp-e8eMhiLy4ahrBg"
+      TURSO_DATABASE_URL: "libsql://auth-api-berathundurel.turso.io"
+      SERVER_PORT: 8081
 
 networks:
   microservices-network:

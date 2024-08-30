@@ -24,19 +24,23 @@ func GenerateJWT(user User) (string, error) {
 }
 
 func CheckToken(tokenString string) (*Claims, error) {
-	var tokenError = errors.New("token is not valid or missing")
-
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		// Validate the token signing method
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
 		return jwtKey, nil
 	})
 
 	if err != nil {
-		return nil, tokenError
+		return nil, err // Return the actual error encountered during parsing
 	}
 
 	if !token.Valid {
-		return nil, tokenError
+		return nil, errors.New("token is invalid or expired") // Return a specific error message
 	}
-	return claims, tokenError
+
+	return claims, nil
 }
+
