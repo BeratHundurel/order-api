@@ -8,7 +8,6 @@ import (
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extract the token from the Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			http.Error(w, "Authorization header missing", http.StatusUnauthorized)
@@ -21,7 +20,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Validate the token by sending a request to the auth service
 		authServiceURL := os.Getenv("AUTH_SERVICE_URL")
 		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, authServiceURL, nil)
 		if err != nil {
