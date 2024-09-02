@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package currency;
+
+option go_package = "/";
+
+service CurrencyConverter {
+  rpc ConvertCurrency(ConvertCurrencyRequest) returns (ConvertCurrencyResponse);
+}
+
+message ConvertCurrencyRequest {
+  float price = 1;
+  string from_currency = 2;
+  string to_currency = 3;
+}
+
+message ConvertCurrencyResponse {
+  float converted_price = 1;
+  string to_currency = 2;
+}
+

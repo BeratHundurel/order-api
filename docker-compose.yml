@@ -1,39 +1,48 @@
 services:
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - microservices-network
+    redis:
+        image: redis
+        container_name: redis
+        ports:
+            - "6379:6379"
+        networks:
+            - microservices-network
 
-  ordering-service:
-    build:
-      context: .
-      dockerfile: order-api/Dockerfile
-    depends_on:
-      - redis
-    ports:
-      - "8080:8080"
-    networks:
-      - microservices-network
-    environment:
-      REDIS_ADDR: "redis:6379"
-      AUTH_SERVICE_URL: "http://auth-service:8081/auth/validate"
+    ordering-service:
+        build:
+            context: .
+            dockerfile: order-api/Dockerfile
+        depends_on:
+            - redis
+        ports:
+            - "8080:8080"
+        networks:
+            - microservices-network
+        environment:
+            REDIS_ADDR: "redis:6379"
+            AUTH_SERVICE_URL: "http://auth-service:8081/auth/validate"
 
-  auth-service:
-    build:
-      context: .
-      dockerfile: authentication-api/Dockerfile
-    ports:
-      - "8081:8081"
-    networks:
-      - microservices-network
-    environment:
-      TURSO_AUTH_TOKEN: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MjQ3MDI1MDAsInAiOnsicnciOnsibnMiOlsiODY0MDVjZGEtMzI5MC00ZjE0LWFiYjMtNmM2ZDY3NDUwM2FhIl19fX0.j81LLtHbrMZw9BTTTGjxLAFSUeflvE6-REtHjKyEhVZnBAApIBzlm0pqDcttlsLAQvgWNyp-e8eMhiLy4ahrBg"
-      TURSO_DATABASE_URL: "libsql://auth-api-berathundurel.turso.io"
-      SERVER_PORT: 8081
+    auth-service:
+        build:
+            context: .
+            dockerfile: authentication-api/Dockerfile
+        ports:
+            - "8081:8081"
+        networks:
+            - microservices-network
+        environment:
+            TURSO_AUTH_TOKEN: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MjQ3MDI1MDAsInAiOnsicnciOnsibnMiOlsiODY0MDVjZGEtMzI5MC00ZjE0LWFiYjMtNmM2ZDY3NDUwM2FhIl19fX0.j81LLtHbrMZw9BTTTGjxLAFSUeflvE6-REtHjKyEhVZnBAApIBzlm0pqDcttlsLAQvgWNyp-e8eMhiLy4ahrBg"
+
+    currency-service:
+        build:
+            context: .
+            dockerfile: currency-api/Dockerfile
+        ports:
+            - "50051:50051"
+        networks:
+            - microservices-network
+        environment:
+            FIXER_API_KEY: "6e036eea46aa0e9b812de84dba8c5bf8"
 
 networks:
-  microservices-network:
-    driver: bridge
+    microservices-network:
+        driver: bridge
