@@ -27,6 +27,7 @@ func (o *OrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		CustomerID uuid.UUID  `json:"customer_id"`
 		LineItems  []LineItem `json:"line_items"`
+		Currency   string     `json:"currency"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {

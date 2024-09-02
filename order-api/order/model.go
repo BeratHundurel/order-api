@@ -13,6 +13,7 @@ type Order struct {
 	CreatedAt   *time.Time `json:"created_at"`
 	ShippedAt   *time.Time `json:"shipped_at"`
 	CompletedAt *time.Time `json:"completed_at"`
+	Currency    string     `json:"currency"`
 }
 
 type LineItem struct {
