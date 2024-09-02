@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/google/uuid"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
+	"google.golang.org/grpc"
 )
 
 type Repo interface {
@@ -20,7 +22,8 @@ type Repo interface {
 }
 
 type OrderHandler struct {
-	Repo Repo
+	Repo         Repo
+	CurrencyConn *grpc.ClientConn
 }
 
 func (o *OrderHandler) Create(w http.ResponseWriter, r *http.Request) {
@@ -42,18 +45,26 @@ func (o *OrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 		LineItems:  body.LineItems,
 		CreatedAt:  &now,
 	}
-	order.Total = CalculateTotal(&order)
 
-	err := o.Repo.Insert(r.Context(), order)
+	total, err := o.CalculateTotal(&order)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	order.Total = total
+
+	err = o.Repo.Insert(r.Context(), order)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	res, err := json.Marshal(order)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	w.Write(res)
 	w.WriteHeader(http.StatusCreated)
 }

@@ -8,12 +8,14 @@ import (
 type Config struct {
 	RedisAddress string
 	ServerPort   uint16
+	gRPCPort     string
 }
 
 func LoadConfig() Config {
 	cfg := Config{
 		RedisAddress: "redis:6379",
 		ServerPort:   8080,
+		gRPCPort:     "currency-service:50051",
 	}
 
 	if v := os.Getenv("REDIS_ADDR"); v != "" {
@@ -25,6 +27,5 @@ func LoadConfig() Config {
 			cfg.ServerPort = uint16(p)
 		}
 	}
-
 	return cfg
 }

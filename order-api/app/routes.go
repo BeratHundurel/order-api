@@ -28,6 +28,7 @@ func (a *App) loadOrderRoutes(router chi.Router) {
 		Repo: &order.RedisRepo{
 			Client: a.rdb,
 		},
+		CurrencyConn: a.currencyConn,
 	}
 
 	router.Post("/", orderHandler.Create)

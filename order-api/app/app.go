@@ -3,25 +3,36 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc"
 )
 
 type App struct {
-	router http.Handler
-	rdb    *redis.Client
-	cfg    Config
+	router       http.Handler
+	rdb          *redis.Client
+	cfg          Config
+	currencyConn *grpc.ClientConn
 }
 
 func New(config Config) *App {
+	conn, err := grpc.NewClient(config.gRPCPort, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("failed to connect to currency service: %v", err)
+	}
+	defer conn.Close()
+
 	app := &App{
 		rdb: redis.NewClient(&redis.Options{
 			Addr: config.RedisAddress,
 		}),
-		cfg: config,
+		cfg:          config,
+		currencyConn: conn,
 	}
+
 	app.loadRoutes()
 	return app
 }

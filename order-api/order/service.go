@@ -1,18 +1,36 @@
 package order
 
 import (
-	"github.com/go-chi/chi"
+	"context"
 	"net/http"
 	"strconv"
+
+	pb "github.com/BeratHundurel/order-api/currency-api/proto"
+	"github.com/go-chi/chi"
 )
 
-func CalculateTotal(o *Order) float64 {
-	var total float64
-	for _, item := range o.LineItems {
-		total += float64(item.Quantity) * item.Price
-	}
-	o.Total = total
-	return total
+func (o *OrderHandler) CalculateTotal(order *Order) (float32, error) {
+    var total float32
+    currencyClient := pb.NewCurrencyConverterClient(o.CurrencyConn)
+
+    for _, item := range order.LineItems {
+        req := &pb.ConvertCurrencyRequest{
+            Price:        item.Price,
+            FromCurrency: "USD",            // Assuming the price is initially in USD
+            ToCurrency:   order.Currency,   // Convert to the order's desired currency
+        }
+
+        res, err := currencyClient.ConvertCurrency(context.Background(), req)
+        if err != nil {
+            return 0, err
+        }
+
+        convertedPrice := res.ConvertedPrice
+        total += float32(item.Quantity) * convertedPrice
+    }
+
+    order.Total = total
+    return total, nil
 }
 
 func ParseParamToUint(r *http.Request, w http.ResponseWriter) (uint64, bool) {
