@@ -43,6 +43,7 @@ func (o *OrderHandler) Create(w http.ResponseWriter, r *http.Request) {
 		ID:         rand.Uint64(),
 		CustomerID: body.CustomerID,
 		LineItems:  body.LineItems,
+		Currency:  body.Currency,
 		CreatedAt:  &now,
 	}
 

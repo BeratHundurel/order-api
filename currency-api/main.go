@@ -1,17 +1,17 @@
 package main
 
 import (
-    "context"
-    "encoding/json"
-    "fmt"
-    "log"
-    "net"
-    "net/http"
-    "os"
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"os"
 
-    pb "github.com/BeratHundurel/order-api/currency-api/proto"
+	pb "github.com/BeratHundurel/order-api/currency-api/proto"
 
-    "google.golang.org/grpc"
+	"google.golang.org/grpc"
 )
 
 const fixerAPIURL = "http://data.fixer.io/api/latest"
@@ -23,6 +23,7 @@ type server struct {
 func (s *server) ConvertCurrency(ctx context.Context, req *pb.ConvertCurrencyRequest) (*pb.ConvertCurrencyResponse, error) {
     conversionRate, err := getConversionRate(req.FromCurrency, req.ToCurrency)
     if err != nil {
+        fmt.Printf("failed to get conversion rate: %v", err)
         return nil, err
     }
     convertedPrice := req.Price * conversionRate
@@ -33,8 +34,17 @@ func (s *server) ConvertCurrency(ctx context.Context, req *pb.ConvertCurrencyReq
     }, nil
 }
 
+
 func getConversionRate(fromCurrency, toCurrency string) (float32, error) {
     apiKey := os.Getenv("FIXER_API_KEY")
+    if apiKey == "" {
+        return 0, fmt.Errorf("FIXER_API_KEY environment variable is not set")
+    }
+
+    if fromCurrency == "" || toCurrency == "" {
+        return 0, fmt.Errorf("fromCurrency or toCurrency is empty")
+    }
+
     url := fmt.Sprintf("%s?access_key=%s&base=%s&symbols=%s", fixerAPIURL, apiKey, fromCurrency, toCurrency)
 
     resp, err := http.Get(url)
@@ -45,10 +55,11 @@ func getConversionRate(fromCurrency, toCurrency string) (float32, error) {
 
     var result struct {
         Success    bool                `json:"success"`
-        Timestamp  int64               `json:"timestamp"`
-        Base       string              `json:"base"`
-        Date       string              `json:"date"`
         Rates      map[string]float32  `json:"rates"`
+        Error      struct {
+            Code int    `json:"code"`
+            Type string `json:"type"`
+        } `json:"error"`
     }
 
     if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -56,7 +67,7 @@ func getConversionRate(fromCurrency, toCurrency string) (float32, error) {
     }
 
     if !result.Success {
-        return 0, fmt.Errorf("failed to fetch conversion rates: API returned an unsuccessful response")
+        return 0, fmt.Errorf("failed to fetch conversion rates: %s (code %d)", result.Error.Type, result.Error.Code)
     }
 
     rate, ok := result.Rates[toCurrency]

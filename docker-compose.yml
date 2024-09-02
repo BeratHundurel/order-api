@@ -31,6 +31,7 @@ services:
             - microservices-network
         environment:
             TURSO_AUTH_TOKEN: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MjQ3MDI1MDAsInAiOnsicnciOnsibnMiOlsiODY0MDVjZGEtMzI5MC00ZjE0LWFiYjMtNmM2ZDY3NDUwM2FhIl19fX0.j81LLtHbrMZw9BTTTGjxLAFSUeflvE6-REtHjKyEhVZnBAApIBzlm0pqDcttlsLAQvgWNyp-e8eMhiLy4ahrBg"
+            TURSO_DATABASE_URL: "libsql://auth-api-berathundurel.turso.io"
 
     currency-service:
         build:

@@ -23,7 +23,6 @@ func New(config Config) *App {
 	if err != nil {
 		log.Fatalf("failed to connect to currency service: %v", err)
 	}
-	defer conn.Close()
 
 	app := &App{
 		rdb: redis.NewClient(&redis.Options{
@@ -72,7 +71,7 @@ func (a *App) Start(ctx context.Context) error {
 	case <-ctx.Done():
 		timeout, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
-
+		defer a.currencyConn.Close()
 		return server.Shutdown(timeout)
 	}
 }

@@ -5,7 +5,7 @@ FROM golang:1.22.2 AS builder
 WORKDIR /app
 
 # Copy the Go Modules manifests
-COPY currency-api/go.mod authentication-api/go.sum ./
+COPY currency-api/go.mod currency-api/go.sum ./
 
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
@@ -14,7 +14,7 @@ RUN go mod download
 COPY currency-api ./
 
 # Build the Go app with static linking
-RUN CGO_ENABLED=0 GOOS=linux go build -a -o auth-service .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o currency-service .
 
 # Start a new stage from scratch
 FROM alpine:latest
@@ -30,4 +30,3 @@ EXPOSE 50051
 
 # Command to run the executable
 CMD ["./currency-service"]
-

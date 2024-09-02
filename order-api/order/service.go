@@ -16,8 +16,8 @@ func (o *OrderHandler) CalculateTotal(order *Order) (float32, error) {
     for _, item := range order.LineItems {
         req := &pb.ConvertCurrencyRequest{
             Price:        item.Price,
-            FromCurrency: "USD",            // Assuming the price is initially in USD
-            ToCurrency:   order.Currency,   // Convert to the order's desired currency
+            FromCurrency: order.Currency,
+            ToCurrency:   "USD",
         }
 
         res, err := currencyClient.ConvertCurrency(context.Background(), req)
